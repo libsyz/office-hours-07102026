@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Office Hours · Socratix AI · July 10 2026</title>
+<style>
+  /* ---- Theme (shared with /code/presentation) ---- */
+  :root{
+    --bg:#0B1220; --card:#16213A; --card2:#111A2E; --ink:#F5F1E8;
+    --muted:#8C96A8; --faint:#5A6478; --amber:#E8A33D; --amber-dim:#9A6F2B;
+    --blue:#4E88B5; --blue-lt:#6BA6C9; --red:#C0604F; --red-lt:#C97B6B;
+    --line:#273252;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:var(--bg)}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;cursor:default}
+  #embers{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+  /* ---- Stage: fixed 1600x900 design surface, scaled to fit viewport ---- */
+  #stagewrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1}
+  #stage{position:relative;width:1600px;height:900px;flex:0 0 auto}
+
+  /* ---- Scenes + step reveals ---- */
+  .scene{position:absolute;inset:0;padding:70px 90px;opacity:0;visibility:hidden;transform:translateY(14px) scale(.995);transition:opacity .55s ease,transform .55s ease,visibility 0s linear .55s;display:flex;flex-direction:column;justify-content:center}
+  .scene.active{opacity:1;visibility:visible;transform:none;transition:opacity .55s ease,transform .55s ease}
+
+  [data-step]{opacity:0;transform:translateY(26px);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}
+  [data-step].on{opacity:1;transform:none}
+  [data-anim="left"]{transform:translateX(-46px)}
+  [data-anim="right"]{transform:translateX(46px)}
+  [data-anim="down"]{transform:translateY(-46px)}
+  [data-anim="pop"]{transform:scale(.82)}
+  [data-anim="stamp"]{transform:scale(1.18)}
+  [data-anim="none"]{transform:none}
+  [data-step].on[data-anim]{transform:none}
+
+  /* ---- Type scale ---- */
+  .kicker{font-size:21px;font-weight:700;letter-spacing:.42em;color:var(--amber);text-transform:uppercase}
+  .display{font-size:56px;font-weight:800;line-height:1.16;letter-spacing:-.01em}
+  .display .amber{color:var(--amber)}
+  .sub{font-size:26px;color:var(--muted);margin-top:24px}
+  .foot{position:absolute;left:90px;right:90px;bottom:64px;font-size:24px;font-style:italic;color:var(--muted)}
+  .foot.strong{font-style:normal;font-weight:700;color:var(--ink)}
+
+  .card{background:var(--card2);border:1px solid var(--line);border-radius:16px}
+  .card.shadow{background:var(--card);border:none;box-shadow:0 14px 34px rgba(0,0,0,.38)}
+  .badge{display:inline-block;padding:12px 26px;border-radius:100px;border:1.5px solid var(--amber);color:var(--amber);font-weight:800;font-size:19px;letter-spacing:.3em}
+
+  /* ---- HUD ---- */
+  #hud{position:fixed;inset:0;z-index:3;pointer-events:none}
+  #bar{position:absolute;left:0;bottom:0;height:3px;background:var(--amber);width:0;transition:width .45s ease;opacity:.85}
+  #secdots{position:absolute;left:34px;bottom:24px;display:flex;gap:12px}
+  #secdots i{width:11px;height:11px;border-radius:50%;border:1.4px solid #3A4356;transition:all .4s}
+  #secdots i.lit{background:var(--amber);border-color:var(--amber)}
+  #counter{position:absolute;right:34px;bottom:18px;font-size:15px;color:var(--faint);letter-spacing:.14em;font-variant-numeric:tabular-nums}
+  #hint{position:absolute;bottom:70px;width:100%;text-align:center;font-size:16px;color:var(--faint);letter-spacing:.06em;transition:opacity 1.2s;opacity:1}
+  #hint.gone{opacity:0}
+
+  /* ---- Cover ---- */
+  .cover{align-items:center;text-align:center}
+  .spark{width:34px;height:34px;border-radius:50%;background:var(--amber);box-shadow:0 0 34px 7px rgba(232,163,61,.45);animation:breathe 3.2s ease-in-out infinite}
+  @keyframes breathe{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.16);opacity:.82}}
+  .cover-logo{width:200px;max-width:55%;height:auto;margin:40px 0 22px;display:block}
+  .cover h1{font-size:88px;font-weight:800;letter-spacing:-.015em;line-height:1.08}
+  .cover .kicker{margin:0 0 8px}
+  .cover .meta{position:absolute;bottom:64px;font-size:20px;color:var(--faint)}
+  .cover h1 .w{display:inline-block;opacity:0;transform:translateY(30px);animation:wordup .8s cubic-bezier(.16,1,.3,1) forwards}
+  @keyframes wordup{to{opacity:1;transform:none}}
+
+  /* ---- Section / agenda ---- */
+  .secnum{font-size:190px;font-weight:800;color:#232E48;line-height:1}
+  .sec .kicker{display:block;margin:6px 0 26px}
+  .sec .display{font-size:60px}
+  .sec .sub{margin-top:38px;font-size:26px;font-style:italic}
+
+  .agenda{list-style:none;margin-top:44px;max-width:1100px}
+  .agenda li{display:flex;align-items:baseline;gap:24px;padding:18px 0;font-size:30px;border-bottom:1px solid var(--line)}
+  .agenda li .an{font-size:22px;font-weight:800;color:var(--amber);letter-spacing:.1em;font-variant-numeric:tabular-nums;flex:0 0 auto}
+  .agenda li .at{color:var(--muted)}
+  .agenda li.on .at{color:var(--ink)}
+
+  /* ---- Discussion prompt (big question) ---- */
+  .qscene{align-items:flex-start}
+  .qscene .badge{margin-bottom:40px}
+  .bigq{font-size:60px;font-weight:800;line-height:1.18;max-width:1300px}
+  .bigq .amber{color:var(--amber)}
+  .bigq .under{color:var(--blue-lt)}
+  .bigq .over{color:var(--red-lt)}
+  .prompts{list-style:none;margin-top:48px}
+  .prompts li{position:relative;padding:12px 0 12px 40px;font-size:27px;line-height:1.4;color:var(--ink);max-width:1200px}
+  .prompts li::before{content:"";position:absolute;left:4px;top:22px;width:11px;height:11px;border-radius:50%;background:var(--amber)}
+
+  /* ---- Two-column compare ---- */
+  .cols{display:flex;gap:34px;margin-top:52px}
+  .col{flex:1;padding:38px 36px;min-height:380px}
+  .col .phead{font-size:19px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--amber-dim);color:var(--amber)}
+  .col.blue .phead{color:var(--blue-lt);border-color:var(--blue)}
+  .col.red .phead{color:var(--red-lt);border-color:var(--red)}
+  .col p{font-size:26px;line-height:1.46}
+  .col ul{list-style:none;margin-top:8px}
+  .col li{position:relative;padding:10px 0 10px 26px;font-size:23px;line-height:1.4;color:var(--ink)}
+  .col li::before{content:"";position:absolute;left:2px;top:19px;width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.7}
+  .col.blue li{color:var(--blue-lt)} .col.red li{color:var(--red-lt)}
+  .col.blue li span,.col.red li span{color:var(--ink)}
+
+  /* ---- Closing ---- */
+  /* ---- Four-question grid (blue ocean / red ocean) ---- */
+  .qgrid{display:flex;gap:34px;margin-top:36px}
+  .qcol{flex:1;padding:30px 34px;display:flex;flex-direction:column}
+  .qcol .ohead{margin-bottom:6px;padding-bottom:16px;border-bottom:1px solid}
+  .qcol.blue .ohead{border-color:var(--blue)}
+  .qcol.red .ohead{border-color:var(--red)}
+  .qcol .oname{font-size:20px;font-weight:800;letter-spacing:.22em;text-transform:uppercase}
+  .qcol.blue .oname{color:var(--blue-lt)} .qcol.red .oname{color:var(--red-lt)}
+  .qcol .otag{display:block;margin-top:8px;font-size:16px;font-style:italic;color:var(--muted)}
+  .qblock{padding:20px 0}
+  .qblock + .qblock{border-top:1px solid var(--line)}
+  .qblock .qk{font-size:13px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;margin-bottom:9px}
+  .qcol.blue .qblock .qk{color:var(--blue-lt)} .qcol.red .qblock .qk{color:var(--red-lt)}
+  .qblock .qq{font-size:22px;line-height:1.36;font-weight:700}
+  .qblock .qh{margin-top:9px;font-size:16.5px;color:var(--muted);line-height:1.42}
+
+  /* ---- Criteria list (ready-to-spike) ---- */
+  .crit{list-style:none;margin-top:44px;max-width:1260px}
+  .crit li{position:relative;padding:17px 0 17px 42px;font-size:29px;line-height:1.34;border-bottom:1px solid var(--line)}
+  .crit li:last-child{border-bottom:none}
+  .crit li::before{content:"";position:absolute;left:4px;top:28px;width:11px;height:11px;border-radius:50%;background:var(--amber)}
+  .crit li b{font-weight:800}
+  .crit li .ex{color:var(--muted);font-weight:400;font-size:23px}
+
+  .closing{align-items:center;text-align:center}
+  .closing .display{font-size:66px}
+</style>
+</head>
+<body>
+<canvas id="embers"></canvas>
+<div id="stagewrap"><div id="stage">
+
+  <!-- ============ S1 · COVER ============ -->
+  <section class="scene cover" id="s1">
+    <div class="spark"></div>
+    <img class="cover-logo" src="assets/socratix-logo.png" alt="Socratix AI">
+    <div class="kicker">Office Hours</div>
+    <h1 id="coverTitle">Imagining Use Cases for AI</h1>
+    <div class="meta">Project Horizons - Telos x Socratix AI &nbsp;·&nbsp; July 10, 2026</div>
+  </section>
+
+  <!-- ============ S2 · HOW THIS HOUR WORKS ============ -->
+  <section class="scene sec" id="s2">
+
+    <span class="kicker">The Plan for this Session </span>
+    <div class="display">You pitch use cases. We listen.<br>Then we go build. 🚀</div>
+    <ul class="agenda">
+      <li data-step data-anim="left"><span class="an">01</span><span class="at">You surface a problem that nags at you — or the ones you can only imagine solving</span></li>
+      <li data-step data-anim="left"><span class="an">02</span><span class="at">Together we dig into them uncovering assumptions and constraints</span></li>
+      <li data-step data-anim="left"><span class="an">03</span><span class="at">Miguel takes it away and runs spikes </span></li>
+      <li data-step data-anim="left"><span class="an">04</span><span class="at">We drip updates and show you what's possible</span></li>
+    </ul>
+  </section>
+
+  <!-- ============ S3 · WARM-UP QUESTION ============ -->
+  <section class="scene qscene" id="s3">
+    <span class="badge" data-step data-anim="down">WARM UP</span>
+    <h2 class="bigq" data-step data-anim="pop">When you picture AI inside your business,<br>what's the <span class="amber">first thing</span> you see?</h2>
+  </section>
+
+  <!-- ============ S4 · TWO DIRECTIONS (framing) ============ -->
+  <section class="scene" id="s4" style="justify-content:flex-start;padding-top:110px">
+    <span class="kicker" data-step data-anim="down">Two directions to point your thinking</span>
+    <div class="display" data-step data-anim="left" style="font-size:48px;margin-top:14px">Imagine what's possible —<br>or fix what already hurts.</div>
+    <div class="cols">
+      <div class="col card blue" data-step data-anim="left" style="min-height:220px">
+        <div class="phead">Blue ocean · Imagine broadly</div>
+        <p>What could AI make <span style="color:var(--ink);font-weight:700">newly possible</span> — something that wasn't even on the table before?</p>
+      </div>
+      <div class="col card red" data-step data-anim="right" style="min-height:220px">
+        <div class="phead">Red ocean · Fix what's known</div>
+        <p>What problem <span style="color:var(--ink);font-weight:700">already hurts</span> — one you'd love to make quietly disappear?</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ S5 · THE FOUR QUESTIONS (blue / red) ============ -->
+  <section class="scene" id="s5" style="justify-content:flex-start;padding-top:64px">
+    <div class="display" data-step data-anim="none" style="font-size:44px">Four questions to get us talking.</div>
+    <div class="qgrid">
+      <div class="qcol card blue" data-step data-anim="left">
+        <div class="ohead">
+          <span class="oname">Blue Ocean</span>
+          <span class="otag">Imagine broadly — what could be</span>
+        </div>
+        <div class="qblock">
+          <div class="qk">Wait, AI can do that now?</div>
+          <div class="qq">What have you seen AI do lately — a demo, an article, a competitor — that made you think: if we could apply that here, it would change everything?</div>
+        </div>
+        <div class="qblock">
+          <div class="qk">The magic wand</div>
+          <div class="qq">If you could wave a wand and have one autonomous thing running 24/7 — not a chatbot, not a dashboard, but something that <em>acts</em> — what would it do?</div>
+        </div>
+      </div>
+      <div class="qcol card red" data-step data-anim="right">
+        <div class="ohead">
+          <span class="oname">Red Ocean</span>
+          <span class="otag">Fix what's known — what already hurts</span>
+        </div>
+        <div class="qblock">
+          <div class="qk">The persistent pain</div>
+          <div class="qq">What's one workflow that's been a pain for years — you've tried to fix it, maybe even bought tools for it — and it still sucks?</div>
+        </div>
+        <div class="qblock">
+          <div class="qk">The visibility black hole</div>
+          <div class="qq">Where do you have zero visibility today — and it costs you money, risk, or speed?</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ S5b · WHAT MAKES A CONCEPT READY TO SPIKE ============ -->
+  <section class="scene" id="s5b" style="justify-content:flex-start;padding-top:96px">
+    <span class="kicker" data-step data-anim="down">Before we build</span>
+    <div class="display" data-step data-anim="left" style="font-size:50px;margin-top:12px">What makes it ready to spike.</div>
+    <ul class="crit">
+      <li data-step data-anim="left"><b>A sharp problem statement</b> <span class="ex">— the one thing we're solving, in a sentence.</span></li>
+      <li data-step data-anim="left"><b>A clear user or agent flow</b> <span class="ex">— what actually gets done, step by step.</span></li>
+      <li data-step data-anim="left"><b>Defined inputs and output</b> <span class="ex">— what goes in, what comes back out.</span></li>
+      <li data-step data-anim="left"><b>Hard constraints</b> <span class="ex">— the non-negotiables: cost, speed, data, systems.</span></li>
+      <li data-step data-anim="left"><b>Success criteria</b> <span class="ex">— what we'd need to see to call the spike a win.</span></li>
+    </ul>
+  </section>
+
+  <!-- ============ S6 · CLOSING / WHAT HAPPENS NEXT ============ -->
+  <section class="scene closing" id="s6">
+    <div class="kicker" data-step data-anim="down">What happens next</div>
+    <div class="display" data-step data-anim="pop">You bring the problem.<br>We bring back the <span class="amber">way through</span>.</div>
+    <div class="foot strong" data-step>Miguel turns today's conversation into research spikes — and a path you can see.</div>
+  </section>
+
+</div></div>
+
+<div id="hud">
+  <div id="secdots"><i></i><i></i><i></i></div>
+  <div id="bar"></div>
+  <div id="counter">01 / 06</div>
+  <div id="hint">Press → or click to advance · ← to go back · F for fullscreen</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var scenes = Array.prototype.slice.call(document.querySelectorAll('.scene'));
+  var cur = 0, step = 0, timers = [];
+
+  function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
+  function clearTimers(){ timers.forEach(function(t){ clearTimeout(t); }); timers = []; }
+  function stepsOf(i){ return scenes[i].querySelectorAll('[data-step]'); }
+
+  /* embers — drifting amber particles behind the stage */
+  var cv = document.getElementById('embers'), cx = cv.getContext('2d'), P = [];
+  function sizeCanvas(){ cv.width = innerWidth; cv.height = innerHeight; }
+  sizeCanvas();
+  for (var i = 0; i < 26; i++) P.push({
+    x: Math.random(), y: Math.random(), r: 1 + Math.random() * 2.2,
+    vy: .00022 + Math.random() * .00042, vx: (Math.random() - .5) * .00016,
+    a: .06 + Math.random() * .16, ph: Math.random() * 6.28
+  });
+  (function tick(t){
+    cx.clearRect(0, 0, cv.width, cv.height);
+    for (var i = 0; i < P.length; i++){
+      var p = P[i];
+      p.y -= p.vy; p.x += p.vx + Math.sin(t / 2600 + p.ph) * .00006;
+      if (p.y < -.02){ p.y = 1.02; p.x = Math.random(); }
+      if (p.x < -.02) p.x = 1.02; if (p.x > 1.02) p.x = -.02;
+      var tw = .55 + .45 * Math.sin(t / 900 + p.ph);
+      cx.beginPath();
+      cx.arc(p.x * cv.width, p.y * cv.height, p.r, 0, 6.28);
+      cx.fillStyle = 'rgba(232,163,61,' + (p.a * tw).toFixed(3) + ')';
+      cx.fill();
+    }
+    requestAnimationFrame(tick);
+  })(0);
+
+  /* stage scaling — everything is designed against 1600x900 */
+  var stage = document.getElementById('stage');
+  function fit(){
+    var s = Math.min(innerWidth / 1600, innerHeight / 900);
+    stage.style.transform = 'scale(' + s + ')';
+    sizeCanvas();
+  }
+  addEventListener('resize', fit); fit();
+
+  /* cover title: word-by-word rise */
+  (function(){
+    var el = document.getElementById('coverTitle');
+    if (!el) return;
+    el.innerHTML = el.textContent.split(' ').map(function(w, i){
+      return '<span class="w" style="animation-delay:' + (0.25 + i * 0.13) + 's">' + w + '</span>';
+    }).join(' ');
+  })();
+
+  /* HUD: progress bar, counter, section dots.
+     SECTION maps scene index -> how many dots are lit (edit thresholds if you reorder). */
+  var SECTION = function(i){
+    if (i >= 5) return 3;   // S6 · what happens next
+    if (i >= 2) return 2;   // S3–S5 · the questions
+    if (i >= 1) return 1;   // S2 · how this hour works
+    return 0;               // S1 · cover
+  };
+  function hud(){
+    document.getElementById('bar').style.width = (cur / (scenes.length - 1) * 100) + '%';
+    document.getElementById('counter').textContent = ('0' + (cur + 1)).slice(-2) + ' / ' + ('0' + scenes.length).slice(-2);
+    var lit = SECTION(cur);
+    document.querySelectorAll('#secdots i').forEach(function(d, k){ d.classList.toggle('lit', k < lit); });
+    if (cur > 0) document.getElementById('hint').classList.add('gone');
+  }
+
+  function resetScene(i){ stepsOf(i).forEach(function(e){ e.classList.remove('on'); }); }
+  function revealAll(i){ stepsOf(i).forEach(function(e){ e.classList.add('on'); }); }
+
+  function go(i, fromBack){
+    if (i < 0 || i >= scenes.length) return;
+    clearTimers();
+    scenes[cur].classList.remove('active');
+    cur = i;
+    resetScene(cur);
+    if (fromBack){ step = stepsOf(cur).length; revealAll(cur); }
+    else step = 0;
+    scenes[cur].classList.add('active');
+    hud();
+  }
+  function next(){
+    var els = stepsOf(cur);
+    if (step < els.length){ els[step].classList.add('on'); step++; }
+    else go(cur + 1, false);
+  }
+  function prev(){ if (cur > 0) go(cur - 1, true); }
+
+  addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown' || e.key === 'Enter'){ e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp'){ e.preventDefault(); prev(); }
+    else if (e.key === 'Home'){ go(0, false); }
+    else if (e.key === 'End'){ go(scenes.length - 1, true); }
+    else if (e.key === 'f' || e.key === 'F'){
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    }
+  });
+  addEventListener('click', function(e){
+    var t = e.target;
+    while (t){
+      if (t.classList && t.classList.contains('noadvance')) return;
+      if (t.tagName === 'VIDEO' || t.tagName === 'AUDIO') return;
+      t = t.parentElement;
+    }
+    if (e.clientX < innerWidth * .22) prev(); else next();
+  });
+
+  scenes[0].classList.add('active');
+  hud();
+  later(function(){ document.getElementById('hint').classList.add('gone'); }, 6000);
+})();
+</script>
+</body>
+</html>
